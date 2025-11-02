@@ -237,8 +237,151 @@ end
 
 -- ===== Mod content =====
 do
-    -- Noclip / Speed / ESP (เหมือนเดิม)
-    -- ... ใส่โค้ด Mod ตามสคริปต์ของคุณด้านบน
+local info = Instance.new("TextLabel", ModContent)
+    info.Size = UDim2.new(1, -10, 0, 20)
+    info.Position = UDim2.new(0,5,0,5)
+    info.BackgroundTransparency = 1
+    info.Text = "Mod: Noclip / Hack Speed / ESP"
+    info.TextColor3 = Color3.fromRGB(200,200,255)
+    info.Font = Enum.Font.Gotham
+    info.TextSize = 16
+
+    -- Noclip
+    local noclip = false
+    local noclipBtn = Instance.new("TextButton", ModContent)
+    noclipBtn.Size = UDim2.new(1,-10,0,35); noclipBtn.Position = UDim2.new(0,5,0,30)
+    noclipBtn.Text = "Noclip: OFF"
+    styleButton(noclipBtn, 16)
+    noclipBtn.TextColor3 = Color3.fromRGB(255,255,255)
+
+    noclipBtn.MouseButton1Click:Connect(function()
+        noclip = not noclip
+        noclipBtn.Text = "Noclip: " .. (noclip and "ON" or "OFF")
+    end)
+
+    -- run noclip in stepped (only one connection)
+    RunService.Stepped:Connect(function()
+        if noclip and LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+
+    -- Speed
+    local speedEnabled = false
+    local speedValue = 16
+    local SpeedBox = Instance.new("TextBox", ModContent)
+    SpeedBox.Size = UDim2.new(1,-10,0,35); SpeedBox.Position = UDim2.new(0,5,0,75)
+    SpeedBox.PlaceholderText = "WalkSpeed"; SpeedBox.Text = tostring(speedValue)
+    SpeedBox.Font = Enum.Font.GothamBold; SpeedBox.TextSize = 16
+    SpeedBox.BackgroundColor3 = Color3.fromRGB(60,60,60); SpeedBox.TextColor3 = Color3.fromRGB(255,255,255)
+    local sCorner = Instance.new("UICorner", SpeedBox); sCorner.CornerRadius = UDim.new(0,5)
+
+    local speedBtn = Instance.new("TextButton", ModContent)
+    speedBtn.Size = UDim2.new(1,-10,0,35); speedBtn.Position = UDim2.new(0,5,0,115)
+    speedBtn.Text = "Hack Speed: OFF"
+    styleButton(speedBtn, 16)
+    speedBtn.TextColor3 = Color3.fromRGB(255,255,255)
+
+    local function applySpeed(enabled)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = enabled and (tonumber(SpeedBox.Text) or 16) or 16
+        end
+    end
+
+    speedBtn.MouseButton1Click:Connect(function()
+        speedEnabled = not speedEnabled
+        speedBtn.Text = "Hack Speed: " .. (speedEnabled and "ON" or "OFF")
+        applySpeed(speedEnabled)
+    end)
+
+    SpeedBox.FocusLost:Connect(function(enter)
+        if enter then
+            if speedEnabled then applySpeed(true) end
+        end
+    end)
+
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        char:WaitForChild("Humanoid").WalkSpeed = speedEnabled and (tonumber(SpeedBox.Text) or 16) or 16
+    end)
+
+    -- ESP (BillboardGui on Head, shows player.Name)
+    local espEnabled = false
+    local espMap = {} -- player -> BillboardGui
+
+    local function createESPFor(player)
+        if not player.Character then return end
+        local head = player.Character:FindFirstChild("Head")
+        if not head then return end
+        if espMap[player] then return end
+
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "BomESP"
+        billboard.Adornee = head
+        billboard.AlwaysOnTop = true
+        billboard.Size = UDim2.new(0, 120, 0, 30)
+        billboard.StudsOffset = Vector3.new(0, 1.8, 0)
+        billboard.Parent = head
+
+        local txt = Instance.new("TextLabel", billboard)
+        txt.Size = UDim2.new(1,0,1,0)
+        txt.BackgroundTransparency = 1
+        txt.Text = player.Name
+        txt.Font = Enum.Font.GothamBold
+        txt.TextSize = 14
+        txt.TextColor3 = Color3.fromRGB(255,255,0)
+        txt.TextStrokeTransparency = 0.6
+
+        espMap[player] = billboard
+    end
+
+    local function removeESPFor(player)
+        if espMap[player] then
+            espMap[player]:Destroy()
+            espMap[player] = nil
+        end
+    end
+
+    local espBtn = Instance.new("TextButton", ModContent)
+    espBtn.Size = UDim2.new(1,-10,0,35); espBtn.Position = UDim2.new(0,5,0,155)
+    espBtn.Text = "ESP: OFF"
+    styleButton(espBtn, 16)
+    espBtn.TextColor3 = Color3.fromRGB(255,255,0)
+
+    espBtn.MouseButton1Click:Connect(function()
+        espEnabled = not espEnabled
+        espBtn.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+        if espEnabled then
+            -- create for all current players (except local)
+            for _, pl in pairs(Players:GetPlayers()) do
+                if pl ~= LocalPlayer then
+                    createESPFor(pl)
+                end
+            end
+        else
+            -- remove all
+            for pl, gui in pairs(espMap) do
+                if gui then gui:Destroy() end
+            end
+            espMap = {}
+        end
+    end)
+
+    -- Keep ESP updated for joining/leaving and character respawns
+    Players.PlayerAdded:Connect(function(pl)
+        pl.CharacterAdded:Connect(function(char)
+            task.wait(0.1)
+            if espEnabled and pl ~= LocalPlayer then createESPFor(pl) end
+        end)
+        if espEnabled and pl ~= LocalPlayer then createESPFor(pl) end
+    end)
+
+    Players.PlayerRemoving:Connect(function(pl)
+        removeESPFor(pl)
+    end)
 end
 
 -- ===== Spectate content =====
