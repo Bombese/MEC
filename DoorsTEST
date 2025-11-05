@@ -1,0 +1,434 @@
+-- Bigger translucent GUI + "Main" + Hack Lock21 toggle
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "BiggerTranslucentGUI"
+gui.ResetOnSpawn = true
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main frame
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.new(0, 520, 0, 320)
+main.Position = UDim2.new(0.5, 0, 0.5, 0)
+main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.BackgroundColor3 = Color3.fromRGB(0,0,0)
+main.BackgroundTransparency = 0.40
+main.BorderSizePixel = 0
+main.Parent = gui
+
+local corner = Instance.new("UICorner", main)
+corner.CornerRadius = UDim.new(0, 14)
+
+local padding = Instance.new("UIPadding", main)
+padding.PaddingLeft = UDim.new(0, 16)
+padding.PaddingTop = UDim.new(0, 14)
+padding.PaddingRight = UDim.new(0, 16)
+padding.PaddingBottom = UDim.new(0, 14)
+
+local stroke = Instance.new("UIStroke", main)
+stroke.Thickness = 2
+stroke.Transparency = 0.55
+
+-- Title bar
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 34)
+titleBar.BackgroundTransparency = 1
+titleBar.Parent = main
+
+local title = Instance.new("TextLabel")
+title.Text = "Ghost Bom X"
+title.Size = UDim2.new(1, -48, 1, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(240,240,240)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Text = "✕"
+closeBtn.Size = UDim2.new(0, 30, 0, 26)
+closeBtn.AnchorPoint = Vector2.new(1, 0)
+closeBtn.Position = UDim2.new(1, -4, 0, 4)
+closeBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+closeBtn.BackgroundTransparency = 0.5
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.Font = Enum.Font.Gotham
+closeBtn.TextSize = 20
+closeBtn.Parent = titleBar
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+-- Left menu
+local left = Instance.new("Frame")
+left.Size = UDim2.new(0, 150, 1, -60)
+left.Position = UDim2.new(0, 0, 0, 46)
+left.BackgroundTransparency = 1
+left.Parent = main
+
+local leftList = Instance.new("UIListLayout", left)
+leftList.SortOrder = Enum.SortOrder.LayoutOrder
+leftList.Padding = UDim.new(0,10)
+
+local function makeMenuButton(text)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(1, 0, 0, 44)
+	b.Text = text
+	b.Font = Enum.Font.Gotham
+	b.TextSize = 16
+	b.TextColor3 = Color3.fromRGB(230,230,230)
+	b.BackgroundColor3 = Color3.fromRGB(25,25,25)
+	b.BackgroundTransparency = 0.5
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
+	b.Parent = left
+	return b
+end
+
+-- เปลี่ยน Home เป็น Main ตามคำขอ
+local btnMain = makeMenuButton("Main")
+local btnAuto = makeMenuButton("Auto")
+local btnHack = makeMenuButton("Hack")
+
+-- Right content area
+local right = Instance.new("Frame")
+right.Size = UDim2.new(1, -180, 1, -60)
+right.Position = UDim2.new(0, 170, 0, 46)
+right.BackgroundTransparency = 1
+right.Parent = main
+
+local contentLabel = Instance.new("TextLabel")
+contentLabel.Text = "Welcome to Ghost Bom X"
+contentLabel.Size = UDim2.new(1, 0, 0, 34)
+contentLabel.BackgroundTransparency = 1
+contentLabel.TextColor3 = Color3.fromRGB(240,240,240)
+contentLabel.Font = Enum.Font.GothamSemibold
+contentLabel.TextSize = 18
+contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+contentLabel.Parent = right
+
+-- Area to place page content
+local pageFrame = Instance.new("Frame")
+pageFrame.Size = UDim2.new(1, 0, 1, -40)
+pageFrame.Position = UDim2.new(0, 0, 0, 36)
+pageFrame.BackgroundTransparency = 1
+pageFrame.Parent = right
+
+-- Utility: clear page
+local function clearPage()
+	for _,v in ipairs(pageFrame:GetChildren()) do
+		v:Destroy()
+	end
+end
+
+-- ---------- Hack: Lock21 toggle implementation ----------
+-- We'll modify local player's WalkSpeed to 21 while enabled.
+local humanoid
+local originalWalkSpeed = 16
+local lock21Enabled = false
+local lerpTweenConnection
+
+local function updateHumanoidReference()
+	local char = player.Character or player.CharacterAdded:Wait()
+	humanoid = char:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		-- save original if not set
+		if originalWalkSpeed == nil or originalWalkSpeed == 16 then
+			originalWalkSpeed = humanoid.WalkSpeed or 16
+		end
+	end
+end
+
+-- Ensure humanoid tracked when character spawns
+player.CharacterAdded:Connect(function()
+	wait(0.05)
+	updateHumanoidReference()
+	-- If lock is on when new character spawns, reapply
+	if lock21Enabled and humanoid then
+		humanoid.WalkSpeed = 21
+	end
+end)
+
+-- Smoothly restore walk speed to original over a short time
+local function restoreSpeedSmooth()
+	if not humanoid then return end
+	local startSpeed = humanoid.WalkSpeed
+	local target = originalWalkSpeed or 16
+	-- cancel previous connection if any
+	if lerpTweenConnection then
+		lerpTweenConnection:Disconnect()
+		lerpTweenConnection = nil
+	end
+	local duration = 0.15 -- คืนค่าเร็ว ๆ ตามที่ขอ
+	local elapsed = 0
+	lerpTweenConnection = RunService.Heartbeat:Connect(function(dt)
+		elapsed = elapsed + dt
+		local alpha = math.clamp(elapsed / duration, 0, 1)
+		humanoid.WalkSpeed = startSpeed + (target - startSpeed) * alpha
+		if alpha >= 1 then
+			lerpTweenConnection:Disconnect()
+			lerpTweenConnection = nil
+		end
+	end)
+end
+
+local function setLock21(on)
+	lock21Enabled = on
+	if not humanoid then updateHumanoidReference() end
+	if humanoid then
+		if on then
+			-- set immediately to 21
+			humanoid.WalkSpeed = 21
+		else
+			-- restore quickly
+			restoreSpeedSmooth()
+		end
+	end
+end
+
+-- Build Hack page UI with Lock21 toggle
+local function buildHackPage()
+	clearPage()
+	local header = Instance.new("TextLabel", pageFrame)
+	header.Text = "Hack — Local demo only"
+	header.Size = UDim2.new(1, 0, 0, 28)
+	header.Position = UDim2.new(0, 0, 0, 0)
+	header.BackgroundTransparency = 1
+	header.Font = Enum.Font.GothamSemibold
+	header.TextSize = 16
+	header.TextColor3 = Color3.fromRGB(240,240,240)
+	header.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Container
+	local cont = Instance.new("Frame", pageFrame)
+	cont.Size = UDim2.new(1, 0, 0, 120)
+	cont.Position = UDim2.new(0, 0, 0, 36)
+	cont.BackgroundTransparency = 1
+
+	-- Lock21 label
+	local lbl = Instance.new("TextLabel", cont)
+	lbl.Text = "Lock 21 (ล็อกความเร็วเป็น 21)"
+	lbl.Size = UDim2.new(0.7, 0, 0, 36)
+	lbl.Position = UDim2.new(0, 0, 0, 6)
+	lbl.BackgroundTransparency = 1
+	lbl.Font = Enum.Font.Gotham
+	lbl.TextSize = 14
+	lbl.TextColor3 = Color3.fromRGB(230,230,230)
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Toggle button
+	local toggle = Instance.new("TextButton", cont)
+	toggle.Size = UDim2.new(0, 110, 0, 36)
+	toggle.Position = UDim2.new(0.72, 0, 0, 6)
+	toggle.Text = "OFF"
+	toggle.Font = Enum.Font.Gotham
+	toggle.TextSize = 14
+	toggle.TextColor3 = Color3.fromRGB(220,220,220)
+	toggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	toggle.BackgroundTransparency = 0.2
+	Instance.new("UICorner", toggle).CornerRadius = UDim.new(0,8)
+
+	-- Toggle visual state updater
+	local function updateToggleVisual(on)
+		if on then
+			toggle.Text = "ON"
+			toggle.BackgroundColor3 = Color3.fromRGB(30,110,30)
+		else
+			toggle.Text = "OFF"
+			toggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
+		end
+	end
+
+	-- Click to toggle
+	toggle.MouseButton1Click:Connect(function()
+		setLock21(not lock21Enabled)
+		updateToggleVisual(lock21Enabled)
+	end)
+
+	-- ensure initial state visual
+	updateToggleVisual(lock21Enabled)
+end
+
+-- Build Main page
+local function buildMainPage()
+	clearPage()
+	local lbl = Instance.new("TextLabel", pageFrame)
+	lbl.Text = "Main — info & quick actions"
+	lbl.Size = UDim2.new(1, 0, 0, 28)
+	lbl.Position = UDim2.new(0, 0, 0, 0)
+	lbl.BackgroundTransparency = 1
+	lbl.Font = Enum.Font.GothamSemibold
+	lbl.TextSize = 16
+	lbl.TextColor3 = Color3.fromRGB(240,240,240)
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+end
+
+-- Build Auto page (placeholder)
+local function buildAutoPage()
+	clearPage()
+	local lbl = Instance.new("TextLabel", pageFrame)
+	lbl.Text = "Auto features (placeholder)"
+	lbl.Size = UDim2.new(1, 0, 0, 28)
+	lbl.Position = UDim2.new(0, 0, 0, 0)
+	lbl.BackgroundTransparency = 1
+	lbl.Font = Enum.Font.GothamSemibold
+	lbl.TextSize = 16
+	lbl.TextColor3 = Color3.fromRGB(240,240,240)
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+end
+
+-- Menu button handlers
+btnMain.MouseButton1Click:Connect(function()
+	contentLabel.Text = "Main"
+	buildMainPage()
+end)
+btnAuto.MouseButton1Click:Connect(function()
+	contentLabel.Text = "Auto"
+	buildAutoPage()
+end)
+btnHack.MouseButton1Click:Connect(function()
+	contentLabel.Text = "Hack"
+	buildHackPage()
+end)
+
+-- Initialize humanoid ref and default page
+updateHumanoidReference()
+buildMainPage()
+
+-- Close button: ensure we restore speed if needed
+closeBtn.MouseButton1Click:Connect(function()
+	-- turn off Lock21 and restore if enabled
+	if lock21Enabled then
+		setLock21(false)
+	end
+	main:Destroy()
+end)
+
+-- Also ensure that if GUI is destroyed by other means, restore speed
+gui.AncestryChanged:Connect(function(_, parent)
+	if not parent then
+		if lock21Enabled then
+			setLock21(false)
+		end
+	end
+end)
+
+-- Draggable
+local dragging, dragStart, startPos, dragInput
+titleBar.InputBegan:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = i.Position
+		startPos = main.Position
+		i.Changed:Connect(function()
+			if i.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+titleBar.InputChanged:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+		dragInput = i
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(i)
+	if dragging and i == dragInput then
+		local delta = i.Position - dragStart
+		main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+--==============================
+--    ESP SYSTEM FOR DOORS
+--==============================
+
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local espEnabled = false
+local espFolder = Instance.new("Folder")
+espFolder.Name = "ESP_Objects"
+espFolder.Parent = game.CoreGui
+
+local function createBillboard(obj, text)
+    if not obj or not obj:FindFirstChildWhichIsA("BasePart") then return end
+
+    local root = obj:FindFirstChildWhichIsA("BasePart")
+    if espFolder:FindFirstChild(obj.Name .. "_ESP") then return end
+
+    local tag = Instance.new("BillboardGui")
+    tag.Name = obj.Name .. "_ESP"
+    tag.Parent = espFolder
+    tag.AlwaysOnTop = true
+    tag.Size = UDim2.new(0, 100, 0, 30)
+    tag.Adornee = root
+
+    local label = Instance.new("TextLabel", tag)
+    label.Size = UDim2.new(1,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamBold
+    label.TextColor3 = Color3.fromRGB(255,200,50)
+    label.TextScaled = true
+
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = tag
+    highlight.Adornee = obj
+    highlight.FillTransparency = 1
+    highlight.OutlineColor = Color3.fromRGB(255,200,50)
+end
+
+local function clearESP()
+    for _,v in ipairs(espFolder:GetChildren()) do
+        v:Destroy()
+    end
+end
+
+local function scanDoors()
+    for _,room in pairs(Workspace:GetChildren()) do
+        if room:FindFirstChild("Door") then
+            local d = room.Door
+            if d:FindFirstChild("Door") then
+                createBillboard(d, "DOOR")
+            end
+        end
+    end
+end
+
+local function scanEntities()
+    for _,obj in pairs(Workspace:GetChildren()) do
+        if obj.Name == "RushMoving" or
+           obj.Name == "AmbushMoving" or
+           obj.Name == "Screech" or
+           obj.Name == "SeekMoving" or
+           obj.Name == "FigureRig" then
+            createBillboard(obj, obj.Name)
+        end
+    end
+end
+
+local function updateESP()
+    clearESP()
+    scanDoors()
+    scanEntities()
+end
+
+RunService.Heartbeat:Connect(function()
+    if espEnabled then
+        updateESP()
+    end
+end)
+
+-- ฟังก์ชันเปิดปิดให้เรียกจาก GUI
+function ToggleESP(state)
+    espEnabled = state
+    if not state then
+        clearESP()
+    end
+end
