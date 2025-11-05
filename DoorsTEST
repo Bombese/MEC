@@ -344,3 +344,102 @@ UserInputService.InputChanged:Connect(function(i)
 			startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 end)
+--========================================
+-- ✅ ESP SYSTEM (WORKING VERSION)
+--========================================
+
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local espOn = false
+local espFolder = Instance.new("Folder")
+espFolder.Name = "ESP_Folder"
+espFolder.Parent = game.CoreGui
+
+-- สร้าง Billboard + Highlight
+local function makeESP(obj, text)
+    if not obj then return end
+
+    local root = obj:FindFirstChild("HumanoidRootPart")
+        or obj:FindFirstChild("Head")
+        or obj:FindFirstChildWhichIsA("BasePart")
+
+    if not root then return end
+    if espFolder:FindFirstChild(obj.Name .. "_ESP") then return end
+
+    local bill = Instance.new("BillboardGui")
+    bill.Name = obj.Name .. "_ESP"
+    bill.Parent = espFolder
+    bill.Adornee = root
+    bill.Size = UDim2.new(0,120,0,35)
+    bill.AlwaysOnTop = true
+
+    local txt = Instance.new("TextLabel", bill)
+    txt.Size = UDim2.new(1,0,1,0)
+    txt.BackgroundTransparency = 1
+    txt.Text = text
+    txt.Font = Enum.Font.GothamBold
+    txt.TextScaled = true
+    txt.TextColor3 = Color3.fromRGB(255,220,50)
+
+    local hl = Instance.new("Highlight")
+    hl.Parent = bill
+    hl.Adornee = obj
+    hl.FillTransparency = 1
+    hl.OutlineColor = Color3.fromRGB(255,220,0)
+end
+
+-- ล้าง ESP เก่า
+local function clearESP()
+    for _,v in ipairs(espFolder:GetChildren()) do
+        v:Destroy()
+    end
+end
+
+-- สแกนหาประตู
+local function scanDoors()
+    for _,room in ipairs(Workspace:GetChildren()) do
+        if room:FindFirstChild("Door") then
+            makeESP(room.Door, "DOOR")
+        end
+    end
+end
+
+-- สแกนหามอนสเตอร์ Doors
+local dangerousNames = {
+    "Rush", "Ambush", "Screech", "Seek", "Figure", "Eyes"
+}
+
+local function scanEntities()
+    for _,obj in ipairs(Workspace:GetChildren()) do
+        for _,name in ipairs(dangerousNames) do
+            if string.find(obj.Name, name) then
+                makeESP(obj, name)
+            end
+        end
+    end
+end
+
+-- อัปเดตทุก 0.2 วินาที
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        if espOn then
+            clearESP()
+            scanDoors()
+            scanEntities()
+        end
+    end
+end)
+
+-- ✅ ฟังก์ชันเรียกจาก GUI ได้จริง
+function ToggleESP(state)
+    espOn = state
+    if not state then clearESP() end
+end
+toggle.MouseButton1Click:Connect(function()
+    local new = not espOn
+    ToggleESP(new)
+    espOn = new
+    updateToggleVisual(espOn)
+end)
