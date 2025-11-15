@@ -20,7 +20,7 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
 -- Title
 local title = Instance.new("TextLabel", frame)
-title.Text = "Auto Farm Script"
+title.Text = "AFK 99Night"
 title.Size = UDim2.new(1, 0, 0, 28)
 title.Position = UDim2.new(0, 0, 0, 5)
 title.BackgroundTransparency = 1
