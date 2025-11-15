@@ -140,11 +140,9 @@ end)
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/ProBaconHub/DATABASE/refs/heads/main/99%20Nights%20in%20the%20Forest/Infinite%20Health.lua"))()
 end)
--- สร้าง ScreenGui
 local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.ResetOnSpawn = false
 
--- สร้าง TextLabel
 local label = Instance.new("TextLabel", gui)
 label.Size = UDim2.new(1, 0, 0, 50)
 label.Position = UDim2.new(0, 0, 0, 20) -- ข้อความอยู่บนสุด
@@ -155,7 +153,6 @@ label.TextSize = 36
 label.TextStrokeTransparency = 0.3
 label.TextStrokeColor3 = Color3.new(0,0,0)
 
--- RGB Effect
 task.spawn(function()
     local hue = 0
     while true do
