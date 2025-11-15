@@ -2,13 +2,13 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
--- GUI หลัก
+--หึ
 local gui = Instance.new("ScreenGui")
 gui.Name = "Auto AFK"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- กรอบ UI
+-- หี
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 200, 0, 160)
 frame.Position = UDim2.new(0.05, 0, 0.1, 0)
@@ -18,7 +18,7 @@ frame.BorderSizePixel = 0
 frame.Parent = gui
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
--- Title
+--หี
 local title = Instance.new("TextLabel", frame)
 title.Text = "AFK 99Night"
 title.Size = UDim2.new(1, 0, 0, 28)
@@ -28,7 +28,7 @@ title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
 
--- ชื่อผู้เล่น
+--หี
 local nameLabel = Instance.new("TextLabel", frame)
 nameLabel.Text = "Player: "..player.Name
 nameLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -38,7 +38,7 @@ nameLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
 nameLabel.Font = Enum.Font.Gotham
 nameLabel.TextSize = 14
 
--- FPS
+-- หี
 local fpsLabel = Instance.new("TextLabel", frame)
 fpsLabel.Text = "FPS: 0"
 fpsLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -48,7 +48,7 @@ fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 fpsLabel.Font = Enum.Font.GothamBold
 fpsLabel.TextSize = 14
 
--- Timer
+-- หี
 local timerLabel = Instance.new("TextLabel", frame)
 timerLabel.Text = "Time: 0s"
 timerLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -58,7 +58,7 @@ timerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 timerLabel.Font = Enum.Font.GothamBold
 timerLabel.TextSize = 14
 
--- ปุ่ม Toggle RGB
+--หี rgb
 local rgbBtn = Instance.new("TextButton", frame)
 rgbBtn.Text = "Toggle RGB"
 rgbBtn.Size = UDim2.new(0.7, 0, 0, 25)
@@ -70,7 +70,7 @@ rgbBtn.TextSize = 14
 Instance.new("UICorner", rgbBtn).CornerRadius = UDim.new(0,6)
 
 ----------------------------------------------------------------------
--- ระบบ RGB ทั้ง UI
+-- ระบบ RGB หน้าหี
 ----------------------------------------------------------------------
 local rgbEnabled = false
 local hue = 0
@@ -99,7 +99,7 @@ spawn(function()
 end)
 
 ----------------------------------------------------------------------
--- ระบบนับเวลา
+-- เย็ดหี
 ----------------------------------------------------------------------
 local startTime = tick()
 spawn(function()
@@ -111,7 +111,7 @@ spawn(function()
 end)
 
 ----------------------------------------------------------------------
--- ระบบ FPS
+-- หี
 ----------------------------------------------------------------------
 local RunService = game:GetService("RunService")
 local lastTime = tick()
@@ -127,7 +127,7 @@ spawn(function()
 end)
 
 ----------------------------------------------------------------------
--- ระบบ Auto Jump ทุก 20 วิ
+-- ระบบ Auto เย็ดหี
 ----------------------------------------------------------------------
 spawn(function()
     while true do
