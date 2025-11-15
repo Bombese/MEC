@@ -4,7 +4,7 @@ local humanoid = character:WaitForChild("Humanoid")
 
 -- GUI หลัก
 local gui = Instance.new("ScreenGui")
-gui.Name = "AutoFarmUI"
+gui.Name = "Auto AFK"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -139,4 +139,29 @@ spawn(function()
 end)
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/ProBaconHub/DATABASE/refs/heads/main/99%20Nights%20in%20the%20Forest/Infinite%20Health.lua"))()
+end)
+-- สร้าง ScreenGui
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.ResetOnSpawn = false
+
+-- สร้าง TextLabel
+local label = Instance.new("TextLabel", gui)
+label.Size = UDim2.new(1, 0, 0, 50)
+label.Position = UDim2.new(0, 0, 0, 20) -- ข้อความอยู่บนสุด
+label.BackgroundTransparency = 1
+label.Text = "God Mode ON"
+label.Font = Enum.Font.GothamBold
+label.TextSize = 36
+label.TextStrokeTransparency = 0.3
+label.TextStrokeColor3 = Color3.new(0,0,0)
+
+-- RGB Effect
+task.spawn(function()
+    local hue = 0
+    while true do
+        hue = hue + 0.01
+        if hue > 1 then hue = 0 end
+        label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+        task.wait(0.02)
+    end
 end)
