@@ -1,3 +1,8 @@
+คุณโดนเงินในบัญชี
+คุณ จิตรษดา จำนวน 200 บาท
+
+xxx_xxx--xxx /\<>^#%%|¥|€{*]+~$\€]++~|^|*
+Code hack money jitsada v**xxx&;@;&/@;&
 /*
     ███ SYSTEM ดูดตัง v4.9 ███
     ██ WARNING: UNAUTHORIZED ACCESS DETECTED ██
