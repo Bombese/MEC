@@ -1,0 +1,67 @@
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local waypoints = {
+    Vector3.new(-58.1, 63.0, 308),
+    Vector3.new(-86, 89.7, 8540.7),
+    Vector3.new(-54, -361, 9489.8)
+}
+local speed = 400 -- ความเร็ว
+
+local function startFlying(character)
+    local root = character:WaitForChild("HumanoidRootPart")
+    
+    -- Noclip
+    local noclipConnection
+    noclipConnection = RunService.Stepped:Connect(function()
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end)
+
+    -- สร้าง BodyPosition
+    local bodyPos = Instance.new("BodyPosition")
+    bodyPos.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyPos.D = 500 -- ทำให้ตอบสนองเร็วขึ้น
+    bodyPos.Position = root.Position
+    bodyPos.Parent = root
+
+    -- ฟังก์ชันเคลื่อนตัว smooth
+    local function flyTo(target)
+        while (bodyPos.Position - target).Magnitude > 1 do
+            local direction = (target - bodyPos.Position)
+            if direction.Magnitude == 0 then break end
+            direction = direction.Unit
+            bodyPos.Position = bodyPos.Position + direction * speed * RunService.RenderStepped:Wait()
+        end
+        bodyPos.Position = target
+    end
+
+    -- วนลูป waypoints
+    spawn(function()
+        while true do
+            for _, target in ipairs(waypoints) do
+                flyTo(target)
+                wait(0.1)
+            end
+            wait(20)
+        end
+    end)
+
+    -- ยกเลิก noclip ถ้าต้องการ (optional)
+    -- character.Humanoid.Died:Connect(function()
+    --     if noclipConnection then noclipConnection:Disconnect() end
+    -- end)
+end
+
+-- เริ่มลอยทันทีหลังตัวละคร spawn
+if player.Character then
+    startFlying(player.Character)
+end
+
+player.CharacterAdded:Connect(function(char)
+    startFlying(char)
+end)
