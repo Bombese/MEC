@@ -308,3 +308,53 @@ HackTab:Toggle({
         getgenv().Noclip = v
     end
 })
+-- ===== SEMI INVISIBLE MODE =====
+
+getgenv().SemiInvisible = false
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function SetSemiInvisible(state)
+    local char = player.Character
+    if not char then return end
+
+    for _,v in pairs(char:GetDescendants()) do
+        -- ส่วนร่างกาย
+        if v:IsA("BasePart") then
+            if v.Name ~= "HumanoidRootPart" then
+                v.Transparency = state and 0.75 or 0
+                v.CanCollide = not state
+            end
+        end
+
+        -- หน้าตัวละคร
+        if v:IsA("Decal") then
+            v.Transparency = state and 0.9 or 0
+        end
+
+        -- ชื่อบนหัว
+        if v:IsA("BillboardGui") then
+            v.Enabled = not state
+        end
+    end
+end
+
+-- กันตายแล้วโหมดหาย
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    if getgenv().SemiInvisible then
+        SetSemiInvisible(true)
+    end
+end)
+
+-- ===== UI : ADD TO HACK TAB =====
+HackTab:Toggle({
+    Title = "Semi Invisible",
+    Desc = "โปร่งใส (คนอื่นเห็นยาก)",
+    Value = false,
+    Callback = function(v)
+        getgenv().SemiInvisible = v
+        SetSemiInvisible(v)
+    end
+})
