@@ -620,3 +620,26 @@ UtilityTab:Button({
         ServerHop()
     end
 })
+-- ===== SETTINGS TAB =====
+
+local SettingsTab = Window:Tab({
+    Title = "Setting",
+    Icon = "settings",
+})
+
+-- ===== DEV INFO =====
+SettingsTab:Label({
+    Title = "Developer",
+    Desc = "Bom Bom",
+})
+
+-- ===== DISCORD COPY =====
+SettingsTab:Button({
+    Title = "Discord",
+    Desc = "กดเพื่อคัดลอก Discord",
+    Callback = function()
+        if setclipboard then
+            setclipboard("discord.gg/5d6W4wuTdR")
+        end
+    end
+})
