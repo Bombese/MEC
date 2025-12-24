@@ -123,22 +123,25 @@ Tab:Button({
         PlayerDropdown:SetValues(GetPlayerList())
     end
 })
--- ===== ESP SYSTEM =====
+-- ===== PLAYER ESP (FULL / FIXED) =====
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+
 local ESPEnabled = false
 local ESPObjects = {}
 
--- สร้าง ESP ให้ผู้เล่น
+-- ===== CREATE ESP =====
 local function CreateESP(plr)
     if plr == LocalPlayer then return end
     if not plr.Character or not plr.Character:FindFirstChild("Head") then return end
+    if ESPObjects[plr] then return end
 
     local bill = Instance.new("BillboardGui")
     bill.Name = "PlayerESP"
     bill.AlwaysOnTop = true
-    bill.Size = UDim2.new(0, 200, 0, 50)
+    bill.Size = UDim2.new(0, 120, 0, 25) -- ขนาดกรอบ
+    bill.StudsOffset = Vector3.new(0, 2.5, 0)
     bill.Adornee = plr.Character.Head
     bill.Parent = plr.Character
 
@@ -146,24 +149,25 @@ local function CreateESP(plr)
     text.Size = UDim2.new(1, 0, 1, 0)
     text.BackgroundTransparency = 1
     text.Text = plr.Name
-    text.TextColor3 = Color3.fromRGB(255, 0, 0)
-    text.TextStrokeTransparency = 0
-    text.TextScaled = true
-    text.Font = Enum.Font.SourceSansBold
+    text.TextColor3 = Color3.fromRGB(255, 80, 80)
+    text.TextStrokeTransparency = 0.3
+    text.TextScaled = false        -- ❌ ปิด scaled
+    text.TextSize = 14             -- ✅ ขนาดพอดี
+    text.Font = Enum.Font.GothamBold
     text.Parent = bill
 
     ESPObjects[plr] = bill
 end
 
--- ลบ ESP
+-- ===== REMOVE ESP =====
 local function RemoveESP()
-    for _,v in pairs(ESPObjects) do
-        if v then v:Destroy() end
+    for _,esp in pairs(ESPObjects) do
+        if esp then esp:Destroy() end
     end
     ESPObjects = {}
 end
 
--- เปิด ESP
+-- ===== ENABLE ESP =====
 local function EnableESP()
     ESPEnabled = true
     for _,plr in pairs(Players:GetPlayers()) do
@@ -171,13 +175,13 @@ local function EnableESP()
     end
 end
 
--- ปิด ESP
+-- ===== DISABLE ESP =====
 local function DisableESP()
     ESPEnabled = false
     RemoveESP()
 end
 
--- ผู้เล่นเข้าใหม่
+-- ===== PLAYER JOIN =====
 Players.PlayerAdded:Connect(function(plr)
     if ESPEnabled then
         plr.CharacterAdded:Connect(function()
@@ -187,13 +191,18 @@ Players.PlayerAdded:Connect(function(plr)
     end
 end)
 
--- ===== UI (Tab ใหม่) =====
+-- ===== PLAYER RESPAWN =====
+Players.PlayerRemoving:Connect(function(plr)
+    if ESPObjects[plr] then
+        ESPObjects[plr] = nil
+    end
+end)
 
+-- ===== UI TAB (WINDUI) =====
 local ESPTab = Window:Tab({
     Title = "ESP",
     Icon = "eye",
 })
--- ไม่ต้อง Select ก็ได้ ถ้าอยากให้แท็บก่อนหน้ายังอยู่
 
 ESPTab:Button({
     Title = "ESP ON",
