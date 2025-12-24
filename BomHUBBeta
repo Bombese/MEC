@@ -627,16 +627,19 @@ local SettingsTab = Window:Tab({
     Icon = "settings",
 })
 
--- ===== DEV INFO =====
-SettingsTab:Label({
-    Title = "Developer",
-    Desc = "Bom Bom",
+-- ===== DEV BUTTON =====
+SettingsTab:Button({
+    Title = "Dev : Bom Bom",
+    Desc = "ผู้พัฒนา",
+    Callback = function()
+        -- ปุ่มโชว์เฉย ๆ (ไม่ต้องทำอะไรก็ได้)
+    end
 })
 
--- ===== DISCORD COPY =====
+-- ===== DISCORD BUTTON =====
 SettingsTab:Button({
     Title = "Discord",
-    Desc = "กดเพื่อคัดลอก Discord",
+    Desc = "discord.gg/5d6W4wuTdR (กดเพื่อคัดลอก)",
     Callback = function()
         if setclipboard then
             setclipboard("discord.gg/5d6W4wuTdR")
