@@ -358,3 +358,107 @@ HackTab:Toggle({
         SetSemiInvisible(v)
     end
 })
+-- ===== SKELETON ESP =====
+
+getgenv().SkeletonESP = false
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Skeletons = {}
+
+-- ข้อต่อโครงกระดูก (R15)
+local Bones = {
+    {"Head","UpperTorso"},
+    {"UpperTorso","LowerTorso"},
+
+    {"UpperTorso","LeftUpperArm"},
+    {"LeftUpperArm","LeftLowerArm"},
+    {"LeftLowerArm","LeftHand"},
+
+    {"UpperTorso","RightUpperArm"},
+    {"RightUpperArm","RightLowerArm"},
+    {"RightLowerArm","RightHand"},
+
+    {"LowerTorso","LeftUpperLeg"},
+    {"LeftUpperLeg","LeftLowerLeg"},
+    {"LeftLowerLeg","LeftFoot"},
+
+    {"LowerTorso","RightUpperLeg"},
+    {"RightUpperLeg","RightLowerLeg"},
+    {"RightLowerLeg","RightFoot"},
+}
+
+local function ClearSkeleton(plr)
+    if Skeletons[plr] then
+        for _,line in pairs(Skeletons[plr]) do
+            line:Remove()
+        end
+        Skeletons[plr] = nil
+    end
+end
+
+local function CreateSkeleton(plr)
+    if plr == LocalPlayer then return end
+    Skeletons[plr] = {}
+
+    for _ = 1,#Bones do
+        local line = Drawing.new("Line")
+        line.Thickness = 1.5
+        line.Color = Color3.fromRGB(0,255,170)
+        line.Transparency = 1
+        Skeletons[plr][#Skeletons[plr]+1] = line
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if not getgenv().SkeletonESP then
+        for _,plr in pairs(Players:GetPlayers()) do
+            ClearSkeleton(plr)
+        end
+        return
+    end
+
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            if not Skeletons[plr] then
+                CreateSkeleton(plr)
+            end
+
+            local char = plr.Character
+            local cam = workspace.CurrentCamera
+
+            for i,bone in ipairs(Bones) do
+                local p1 = char:FindFirstChild(bone[1])
+                local p2 = char:FindFirstChild(bone[2])
+                local line = Skeletons[plr][i]
+
+                if p1 and p2 then
+                    local s1,vis1 = cam:WorldToViewportPoint(p1.Position)
+                    local s2,vis2 = cam:WorldToViewportPoint(p2.Position)
+
+                    if vis1 and vis2 then
+                        line.From = Vector2.new(s1.X,s1.Y)
+                        line.To   = Vector2.new(s2.X,s2.Y)
+                        line.Visible = true
+                    else
+                        line.Visible = false
+                    end
+                else
+                    line.Visible = false
+                end
+            end
+        end
+    end
+end)
+
+-- ===== UI BUTTON =====
+HackTab:Toggle({
+    Title = "Skeleton ESP",
+    Desc = "แสดงโครงกระดูกผู้เล่น",
+    Value = false,
+    Callback = function(v)
+        getgenv().SkeletonESP = v
+    end
+})
