@@ -358,18 +358,20 @@ HackTab:Toggle({
         SetSemiInvisible(v)
     end
 })
--- ===== SKELETON ESP =====
+-- ===== SKELETON ESP (R6 + R15) =====
 
 getgenv().SkeletonESP = false
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 local Skeletons = {}
 
--- ข้อต่อโครงกระดูก (R15)
-local Bones = {
+-- ===== Bones =====
+
+local BonesR15 = {
     {"Head","UpperTorso"},
     {"UpperTorso","LowerTorso"},
 
@@ -390,6 +392,18 @@ local Bones = {
     {"RightLowerLeg","RightFoot"},
 }
 
+local BonesR6 = {
+    {"Head","Torso"},
+
+    {"Torso","Left Arm"},
+    {"Torso","Right Arm"},
+
+    {"Torso","Left Leg"},
+    {"Torso","Right Leg"},
+}
+
+-- ===== Functions =====
+
 local function ClearSkeleton(plr)
     if Skeletons[plr] then
         for _,line in pairs(Skeletons[plr]) do
@@ -399,18 +413,20 @@ local function ClearSkeleton(plr)
     end
 end
 
-local function CreateSkeleton(plr)
-    if plr == LocalPlayer then return end
+local function CreateSkeleton(plr, bones)
     Skeletons[plr] = {}
 
-    for _ = 1,#Bones do
+    for _ = 1,#bones do
         local line = Drawing.new("Line")
         line.Thickness = 1.5
         line.Color = Color3.fromRGB(0,255,170)
         line.Transparency = 1
-        Skeletons[plr][#Skeletons[plr]+1] = line
+        line.Visible = false
+        table.insert(Skeletons[plr], line)
     end
 end
+
+-- ===== Render =====
 
 RunService.RenderStepped:Connect(function()
     if not getgenv().SkeletonESP then
@@ -422,23 +438,26 @@ RunService.RenderStepped:Connect(function()
 
     for _,plr in pairs(Players:GetPlayers()) do
         if plr ~= LocalPlayer and plr.Character then
+            local char = plr.Character
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if not humanoid then continue end
+
+            local bones = humanoid.RigType == Enum.HumanoidRigType.R15 and BonesR15 or BonesR6
+
             if not Skeletons[plr] then
-                CreateSkeleton(plr)
+                CreateSkeleton(plr, bones)
             end
 
-            local char = plr.Character
-            local cam = workspace.CurrentCamera
-
-            for i,bone in ipairs(Bones) do
+            for i,bone in ipairs(bones) do
                 local p1 = char:FindFirstChild(bone[1])
                 local p2 = char:FindFirstChild(bone[2])
                 local line = Skeletons[plr][i]
 
                 if p1 and p2 then
-                    local s1,vis1 = cam:WorldToViewportPoint(p1.Position)
-                    local s2,vis2 = cam:WorldToViewportPoint(p2.Position)
+                    local s1,v1 = Camera:WorldToViewportPoint(p1.Position)
+                    local s2,v2 = Camera:WorldToViewportPoint(p2.Position)
 
-                    if vis1 and vis2 then
+                    if v1 and v2 then
                         line.From = Vector2.new(s1.X,s1.Y)
                         line.To   = Vector2.new(s2.X,s2.Y)
                         line.Visible = true
@@ -453,10 +472,10 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ===== UI BUTTON =====
+-- ===== UI =====
 HackTab:Toggle({
-    Title = "Skeleton ESP",
-    Desc = "แสดงโครงกระดูกผู้เล่น",
+    Title = "Skeleton ESP (R6 / R15)",
+    Desc = "รองรับผู้เล่นทุก Rig",
     Value = false,
     Callback = function(v)
         getgenv().SkeletonESP = v
