@@ -620,26 +620,30 @@ UtilityTab:Button({
         ServerHop()
     end
 })
--- ===== SETTINGS TAB =====
+-- ===== SETTINGS TAB (FIXED) =====
 
-local SettingsTab = Window:Tab({
+local SettingTab = Window:Tab({
     Title = "Setting",
     Icon = "settings",
+    Locked = false,
 })
 
+-- สำคัญ: บังคับ Select ครั้งแรก
+SettingTab:Select()
+
 -- ===== DEV BUTTON =====
-SettingsTab:Button({
+SettingTab:Button({
     Title = "Dev : Bom Bom",
     Desc = "ผู้พัฒนา",
     Callback = function()
-        -- ปุ่มโชว์เฉย ๆ (ไม่ต้องทำอะไรก็ได้)
+        -- ไม่ต้องทำอะไรก็ได้
     end
 })
 
 -- ===== DISCORD BUTTON =====
-SettingsTab:Button({
+SettingTab:Button({
     Title = "Discord",
-    Desc = "discord.gg/5d6W4wuTdR (กดเพื่อคัดลอก)",
+    Desc = "discord.gg/5d6W4wuTdR",
     Callback = function()
         if setclipboard then
             setclipboard("discord.gg/5d6W4wuTdR")
