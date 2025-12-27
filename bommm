@@ -1,0 +1,102 @@
+--// WindUI - EMPTY UI
+local WindUI = loadstring(game:HttpGet(
+    "https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"
+))()
+
+--// Create Window
+local Window = WindUI:CreateWindow({
+    Title = "NOOBHUB",
+    Icon = "monitor",
+    Author = "Bom Bom",
+
+    OpenButton = {
+        Title = "Open UI",
+        Icon = "menu",
+        CornerRadius = UDim.new(0,16),
+        StrokeThickness = 2,
+        Enabled = true,
+        Draggable = true,
+    }
+})
+--// ===== Main Tab =====
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local TabMain = Window:Tab({
+    Title = "Main",
+    Icon = "eye"
+})
+
+TabMain:Select()
+
+--// ESP Storage
+local ESPEnabled = false
+local ESPBoxes = {}
+
+--// Create ESP Box
+local function CreateESP(player)
+    if player == LocalPlayer then return end
+
+    local box = Drawing.new("Square")
+    box.Thickness = 2
+    box.Color = Color3.fromRGB(255, 0, 0)
+    box.Transparency = 1
+    box.Filled = false
+    box.Visible = false
+
+    ESPBoxes[player] = box
+end
+
+--// Remove ESP
+local function RemoveESP(player)
+    if ESPBoxes[player] then
+        ESPBoxes[player]:Remove()
+        ESPBoxes[player] = nil
+    end
+end
+
+--// Update ESP
+RunService.RenderStepped:Connect(function()
+    if not ESPEnabled then
+        for _,box in pairs(ESPBoxes) do
+            box.Visible = false
+        end
+        return
+    end
+
+    for _,player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            local box = ESPBoxes[player] or CreateESP(player)
+
+            local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+            if onScreen then
+                local size = Vector2.new(40, 60)
+                box.Size = size
+                box.Position = Vector2.new(
+                    pos.X - size.X / 2,
+                    pos.Y - size.Y / 2
+                )
+                box.Visible = true
+            else
+                box.Visible = false
+            end
+        end
+    end
+end)
+
+--// Player Join / Leave
+Players.PlayerAdded:Connect(CreateESP)
+Players.PlayerRemoving:Connect(RemoveESP)
+
+--// Toggle ESP
+TabMain:Toggle({
+    Title = "ESP (Box)",
+    Desc = "มองทะลุ + กรอบรอบตัวผู้เล่น",
+    Value = false,
+    Callback = function(v)
+        ESPEnabled = v
+    end
+})
