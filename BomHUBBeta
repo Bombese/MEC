@@ -323,7 +323,7 @@ local function SetSemiInvisible(state)
         -- ส่วนร่างกาย
         if v:IsA("BasePart") then
             if v.Name ~= "HumanoidRootPart" then
-                v.Transparency = state and 0.55 or 0
+                v.Transparency = state and 0.75 or 0
                 v.CanCollide = not state
             end
         end
