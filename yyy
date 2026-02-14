@@ -1,0 +1,535 @@
+local WindUI = loadstring(game:HttpGet(
+
+"https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"
+
+))()
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+
+local UIS = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+------------------------------------------------
+
+-- WINDOW / TAB
+
+------------------------------------------------
+
+local Window = WindUI:CreateWindow({
+
+    Title = "My First WindUI",
+
+    Icon = "rbxassetid://4483345998",
+
+})
+
+local MainTab = Window:Tab({
+
+    Title = "Main",
+
+    Icon = "spider",
+
+})
+
+local VisualTab = Window:Tab({
+
+    Title = "Visual",
+
+    Icon = "eye",
+
+})
+
+local AdvancedTab = Window:Tab({
+
+    Title = "Advanced",
+
+    Icon = "flame",
+
+})
+
+------------------------------------------------
+
+-- ตัวแปรหลัก
+
+------------------------------------------------
+
+local infiniteJump = false
+
+local flyMode = false
+
+local noclip = false
+
+local godMode = false
+
+local espEnabled = false
+
+local speedEnabled = false
+
+local defaultSpeed = 16
+
+local speedValue = 500
+
+------------------------------------------------
+
+-- 🧍 PLAYER
+
+------------------------------------------------
+
+MainTab:Section({ Title = "🧍 Player" })
+
+-- God Mode
+
+MainTab:Toggle({
+
+    Title = "God Mode",
+
+    Desc = "อมตะ",
+
+    Callback = function(v)
+
+        godMode = v
+
+        local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+
+        if hum then
+
+            if v then
+
+                hum.MaxHealth = math.huge
+
+                hum.Health = hum.MaxHealth
+
+            else
+
+                hum.MaxHealth = 100
+
+                hum.Health = 100
+
+            end
+
+        end
+
+    end
+
+})
+
+-- Infinite Jump
+
+MainTab:Toggle({
+
+    Title = "Infinite Jump",
+
+    Desc = "กระโดดไม่จำกัด",
+
+    Callback = function(v)
+
+        infiniteJump = v
+
+    end
+
+})
+
+UIS.JumpRequest:Connect(function()
+
+    if infiniteJump then
+
+        local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+
+        if hum then
+
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+
+        end
+
+    end
+
+end)
+
+-- Speed Toggle
+
+MainTab:Toggle({
+
+    Title = "Speed x500",
+
+    Desc = "วิ่งเร็ว เปิด/ปิด",
+
+    Callback = function(v)
+
+        speedEnabled = v
+
+        local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+
+        if hum then
+
+            hum.WalkSpeed = v and speedValue or defaultSpeed
+
+        end
+
+    end
+
+})
+
+------------------------------------------------
+
+-- 👻 Invisible
+
+------------------------------------------------
+
+local invisible = false
+
+local savedTransparency = {}
+
+MainTab:Toggle({
+
+    Title = "Invisible",
+
+    Desc = "หายตัว เปิด/ปิด",
+
+    Default = false,
+
+    Callback = function(v)
+
+        invisible = v
+
+        local char = player.Character
+
+        if not char then return end
+
+        for _, obj in pairs(char:GetDescendants()) do
+
+            -- เก็บค่าเดิมไว้
+
+            if obj:IsA("BasePart") or obj:IsA("Decal") then
+
+                if invisible then
+
+                    savedTransparency[obj] = obj.Transparency
+
+                    obj.Transparency = 1
+
+                else
+
+                    if savedTransparency[obj] ~= nil then
+
+                        obj.Transparency = savedTransparency[obj]
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+})
+
+------------------------------------------------
+
+-- 🏃 MOVEMENT
+
+------------------------------------------------
+
+MainTab:Section({ Title = "🏃 Movement" })
+
+-- Fly Mode
+
+local bv, bg
+
+MainTab:Toggle({
+
+    Title = "Fly Mode",
+
+    Desc = "บินตามกล้อง",
+
+    Callback = function(v)
+
+        flyMode = v
+
+        local char = player.Character
+
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+        if v and hrp then
+
+            bv = Instance.new("BodyVelocity", hrp)
+
+            bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+
+            bg = Instance.new("BodyGyro", hrp)
+
+            bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+
+            RunService:BindToRenderStep("Fly", 0, function()
+
+                local cam = workspace.CurrentCamera
+
+                bg.CFrame = cam.CFrame
+
+                bv.Velocity = cam.CFrame.LookVector * 60
+
+            end)
+
+        else
+
+            RunService:UnbindFromRenderStep("Fly")
+
+            if bv then bv:Destroy() end
+
+            if bg then bg:Destroy() end
+
+        end
+
+    end
+
+})
+
+-- No Clip
+
+MainTab:Toggle({
+
+    Title = "No Clip",
+
+    Desc = "เดินทะลุกำแพง",
+
+    Callback = function(v)
+
+        noclip = v
+
+    end
+
+})
+
+RunService.Stepped:Connect(function()
+
+    if noclip then
+
+        local char = player.Character
+
+        if char then
+
+            for _, p in pairs(char:GetDescendants()) do
+
+                if p:IsA("BasePart") then
+
+                    p.CanCollide = false
+
+                end
+
+            end
+
+        end
+
+    end
+
+end)
+
+------------------------------------------------
+
+-- 👁️ VISUAL
+
+------------------------------------------------
+
+VisualTab:Section({ Title = "👁️ ESP" })
+
+-- ESP Player
+
+VisualTab:Toggle({
+
+    Title = "ESP Players",
+
+    Desc = "เห็นผู้เล่นทะลุกำแพง",
+
+    Callback = function(v)
+
+        espEnabled = v
+
+        for _, plr in pairs(Players:GetPlayers()) do
+
+            if plr ~= player and plr.Character then
+
+                local old = plr.Character:FindFirstChild("ESP")
+
+                if v then
+
+                    if not old then
+
+                        local hl = Instance.new("Highlight")
+
+                        hl.Name = "ESP"
+
+                        hl.FillColor = Color3.fromRGB(255,0,0)
+
+                        hl.Parent = plr.Character
+
+                    end
+
+                else
+
+                    if old then old:Destroy() end
+
+                end
+
+            end
+
+        end
+
+    end
+
+})
+
+------------------------------------------------
+
+-- 📏 Distance ESP
+
+------------------------------------------------
+
+local distanceESP = false
+
+local distanceTags = {}
+
+VisualTab:Toggle({
+
+    Title = "Distance ESP",
+
+    Desc = "แสดงระยะผู้เล่น",
+
+    Callback = function(v)
+
+        distanceESP = v
+
+        if not v then
+
+            for _, gui in pairs(distanceTags) do
+
+                gui:Destroy()
+
+            end
+
+            distanceTags = {}
+
+        end
+
+    end
+
+})
+
+RunService.RenderStepped:Connect(function()
+
+    if not distanceESP then return end
+
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+    for _, plr in pairs(Players:GetPlayers()) do
+
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+
+            local hrp = plr.Character.HumanoidRootPart
+
+            local dist = (hrp.Position - player.Character.HumanoidRootPart.Position).Magnitude
+
+            if not distanceTags[plr] then
+
+                local bb = Instance.new("BillboardGui")
+
+                bb.Size = UDim2.fromScale(4,1)
+
+                bb.AlwaysOnTop = true
+
+                bb.Adornee = hrp
+
+                local lbl = Instance.new("TextLabel")
+
+                lbl.Name = "TextLabel"
+
+                lbl.Size = UDim2.fromScale(1,1)
+
+                lbl.BackgroundTransparency = 1
+
+                lbl.TextColor3 = Color3.new(1,1,1)
+
+                lbl.TextScaled = true
+
+                lbl.Parent = bb
+
+                bb.Parent = hrp
+
+                distanceTags[plr] = bb
+
+            end
+
+            distanceTags[plr].TextLabel.Text = math.floor(dist) .. " m"
+
+        end
+
+    end
+
+end)
+
+------------------------------------------------
+
+-- 🔥 ADVANCED
+
+------------------------------------------------
+
+AdvancedTab:Section({ Title = "🔥 Experimental" })
+
+AdvancedTab:Button({
+
+    Title = "Spawn Sword",
+
+    Desc = "เสกดาบดาเมจ 100",
+
+    Callback = function()
+
+        local tool = Instance.new("Tool")
+
+        tool.Name = "God Sword"
+
+        tool.RequiresHandle = true
+
+        tool.CanBeDropped = false
+
+        local handle = Instance.new("Part")
+
+        handle.Name = "Handle"
+
+        handle.Size = Vector3.new(1,4,1)
+
+        handle.Material = Enum.Material.Metal
+
+        handle.Color = Color3.fromRGB(40,40,40)
+
+        handle.Parent = tool
+
+        local debounce = false
+
+        handle.Touched:Connect(function(hit)
+
+            if debounce then return end
+
+            local hum = hit.Parent:FindFirstChild("Humanoid")
+
+            if hum and hit.Parent ~= player.Character then
+
+                debounce = true
+
+                hum:TakeDamage(100)
+
+                task.wait(0.2)
+
+                debounce = false
+
+            end
+
+        end)
+
+        tool.Parent = player.Backpack
+
+    end
+
+})
