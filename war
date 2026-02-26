@@ -110,7 +110,6 @@ RunService.Stepped:Connect(function()
     end)
 end)
 
-Window:SelectTab(1)
 
 -------------------------------------------------------------------------------
 -- [ TAB: GUN ]
@@ -381,7 +380,7 @@ EventTab:AddButton({
 
         -- ค้นหา Oil ใน Workspace (ตรวจสอบชื่อที่น่าจะเป็นไปได้)
         for _, v in pairs(workspace:GetDescendants()) do
-            if v.Name == "Oil_Barrel" or v.Name:find("Oil") then
+            if v.Name == "OilBarrel" or v.Name:find("Oil") then
                 local targetPos = nil
                 if v:IsA("Model") then
                     targetPos = v:GetModelCFrame()
@@ -417,3 +416,5 @@ EventTab:AddParagraph({
     Title = "How to use",
     Content = "ปุ่ม Oil จะทำการสแกนหา Object ที่ชื่อว่า Oil ในแมพแล้ววาร์ปไปหาทันที ส่วนจุดยึดจะวาร์ปไปตามพิกัดคงที่"
 })
+
+Window:SelectTab(1)
