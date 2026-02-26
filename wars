@@ -348,6 +348,95 @@ EventTab:AddParagraph({
 })
 
 -------------------------------------------------------------------------------
+-- [ TAB: TELEPORT ] - ระบบวาร์ปหาผู้เล่น
+-------------------------------------------------------------------------------
+local TPTab = Window:AddTab({ Title = "Teleport", Icon = "user" })
+
+TPTab:AddSection("Player Teleport (วาร์ปหาผู้เล่น)")
+
+local SelectedPlayer = nil
+local FlyingToPlayer = false
+
+--// 1. Dropdown เลือกรายชื่อผู้เล่น
+local PlayerDropdown = TPTab:AddDropdown("PlayerDropdown", {
+    Title = "Select Player (เลือกผู้เล่น)",
+    Values = {}, -- จะอัปเดตอัตโนมัติ
+    Multi = false,
+    Default = nil,
+    Callback = function(Value)
+        SelectedPlayer = Value
+    end
+})
+
+-- ฟังก์ชันอัปเดตรายชื่อคนในเซิร์ฟ
+local function UpdatePlayerList()
+    local pList = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= lp then
+            table.insert(pList, p.Name)
+        end
+    end
+    PlayerDropdown:SetValues(pList)
+end
+
+-- อัปเดตรายชื่อตอนเปิด และตอนคนเข้า/ออก
+UpdatePlayerList()
+Players.PlayerAdded:Connect(UpdatePlayerList)
+Players.PlayerRemoving:Connect(UpdatePlayerList)
+
+--// 2. ปุ่มวาร์ป (Instant TP)
+TPTab:AddButton({
+    Title = "Teleport to Player (วาร์ปไปหา)",
+    Description = "วาร์ปไปที่ตำแหน่งผู้เล่นทันที",
+    Callback = function()
+        if SelectedPlayer then
+            local target = Players:FindFirstChild(SelectedPlayer)
+            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                lp.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+                Fluent:Notify({ Title = "TP Success", Content = "Teleported to " .. SelectedPlayer, Duration = 3 })
+            end
+        else
+            Fluent:Notify({ Title = "Error", Content = "Please select a player first!", Duration = 3 })
+        end
+    end
+})
+
+--// 3. ปุ่มบินไปหา (Fly to Player / Tween)
+TPTab:AddToggle("FlyToToggle", {
+    Title = "Auto Fly to Player (บินไปหา/ติดตาม)",
+    Default = false,
+    Callback = function(Value)
+        FlyingToPlayer = Value
+    end
+})
+
+-- Logic สำหรับการบินติดตาม
+RunService.Heartbeat:Connect(function()
+    if FlyingToPlayer and SelectedPlayer then
+        pcall(function()
+            local target = Players:FindFirstChild(SelectedPlayer)
+            local myHRP = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+            local targetHRP = target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+            
+            if myHRP and targetHRP then
+                -- บินไปข้างบนหัวเป้าหมายเล็กน้อย (กันติดพื้น)
+                myHRP.CFrame = myHRP.CFrame:Lerp(targetHRP.CFrame * CFrame.new(0, 5, 2), 0.1)
+                myHRP.Velocity = Vector3.new(0, 0, 0) -- หยุดแรงโน้มถ่วง
+            end
+        end)
+    end
+end)
+
+TPTab:AddSection("Refresh List")
+TPTab:AddButton({
+    Title = "Refresh Player List",
+    Description = "กดหากรายชื่อไม่อัปเดต",
+    Callback = function()
+        UpdatePlayerList()
+    end
+})
+
+-------------------------------------------------------------------------------
 -- [ TAB: EXECUTOR ] - ปรับปรุงใหม่
 -------------------------------------------------------------------------------
 local ExecTab = Window:AddTab({ Title = "Executor", Icon = "terminal" })
