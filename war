@@ -381,7 +381,7 @@ EventTab:AddButton({
 
         -- ค้นหา Oil ใน Workspace (ตรวจสอบชื่อที่น่าจะเป็นไปได้)
         for _, v in pairs(workspace:GetDescendants()) do
-            if v.Name == "Oil" or v.Name:find("Oil") then
+            if v.Name == "Oil_Barrel" or v.Name:find("Oil") then
                 local targetPos = nil
                 if v:IsA("Model") then
                     targetPos = v:GetModelCFrame()
