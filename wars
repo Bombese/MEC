@@ -194,14 +194,6 @@ GunTab:AddButton({
 local FuncTab = Window:AddTab({ Title = "Function", Icon = "box" })
 
 --// ESP Settings
-FuncTab:AddSection("ESP System (ระบบมองทะลุ)")
-
-local ESPEnabled, ESPName, ESPHealth, ESPDistance = false, false, false, false
-
-FuncTab:AddToggle("ESP_Toggle", { Title = "Enable ESP", Default = false, Callback = function(v) ESPEnabled = v end })
-FuncTab:AddToggle("ESP_Name", { Title = "Show Name", Default = false, Callback = function(v) ESPName = v end })
-FuncTab:AddToggle("ESP_Health", { Title = "Show Health", Default = false, Callback = function(v) ESPHealth = v end })
-FuncTab:AddToggle("ESP_Dist", { Title = "Show Distance", Default = false, Callback = function(v) ESPDistance = v end })
 
 --// Hitbox Settings
 FuncTab:AddSection("Hitbox System (ขยายฮิตบ็อกซ์)")
