@@ -401,3 +401,49 @@ QuestTab:AddButton({
         end
     end
 })
+
+-------------------------------------------------------------------------------
+-- [ TAB: EXECUTOR ]
+-------------------------------------------------------------------------------
+local ExecTab = Window:AddTab({ Title = "Executor", Icon = "terminal" })
+
+ExecTab:AddSection("Executor Information (ข้อมูลตัวรัน)")
+
+-- ดึงชื่อตัวรัน (identifyexecutor เป็นฟังก์ชันมาตรฐานของตัวรันส่วนใหญ่)
+local execName, execVersion = identifyexecutor()
+
+ExecTab:AddParagraph({
+    Title = "Current Executor",
+    Content = "Name: " .. (execName or "Unknown") .. "\nVersion: " .. (execVersion or "N/A")
+})
+
+ExecTab:AddSection("Check Capabilities")
+
+ExecTab:AddButton({
+    Title = "Check Internal UI Version",
+    Description = "ตรวจสอบเวอร์ชันของ Fluent UI ที่ใช้อยู่",
+    Callback = function()
+        Fluent:Notify({
+            Title = "UI Info",
+            Content = "Fluent UI Version: 1.1.0",
+            Duration = 3
+        })
+    end
+})
+
+ExecTab:AddButton({
+    Title = "Check Script Support",
+    Description = "เช็คว่าตัวรันของคุณรองรับฟังก์ชันสำคัญไหม",
+    Callback = function()
+        local support = ""
+        support = support .. "FireTouch: " .. (firetouchinterest and "✅" or "❌") .. "\n"
+        support = support .. "GetHui: " .. (gethui and "✅" or "❌") .. "\n"
+        support = support .. "ProtectGui: " .. (syn and syn.protect_gui and "✅" or "❌")
+        
+        Fluent:Notify({
+            Title = "Compatibility Check",
+            Content = support,
+            Duration = 5
+        })
+    end
+})
