@@ -186,7 +186,7 @@ GunTab:AddButton({
     Callback = function()
         FindAndTP("RPG")
     end
-})
+}) 
 
 -------------------------------------------------------------------------------
 -- [ TAB: FUNCTION ]
@@ -206,7 +206,7 @@ FuncTab:AddToggle("ESP_Name", { Title = "Show Name (ชื่อ)", Default = fa
 FuncTab:AddToggle("ESP_Health", { Title = "Show Health (หลอดเลือด)", Default = false, Callback = function(v) ESPHealth = v end })
 FuncTab:AddToggle("ESP_Dist", { Title = "Show Distance (ระยะทาง)", Default = false, Callback = function(v) ESPDistance = v end })
 
---// Hitbox Settings
+--// Hitbox Settings (ใช้อันที่คุณส่งมา)
 FuncTab:AddSection("Hitbox System (ขยายฮิตบ็อกซ์)")
 
 _G.HeadSize = 10 
@@ -244,6 +244,7 @@ FuncTab:AddToggle("Fling_Toggle", {
     Callback = function(v) 
         FlingEnabled = v 
         if not v then
+            -- คืนค่าความเร็วเมื่อปิด
             pcall(function() lp.Character.HumanoidRootPart.RotVelocity = Vector3.new(0,0,0) end)
         end
     end
@@ -255,25 +256,17 @@ FuncTab:AddToggle("Fling_Toggle", {
 
 --// Loop for Hitbox & Noclip & Fling
 RunService.RenderStepped:Connect(function()
-    -- [[ FIXED HITBOX LOGIC ]]
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= lp and player.Name ~= _G.WhitelistName and player.Character then
-            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                if not _G.Disabled then
-                    -- เมื่อเปิดใช้งาน (ON)
+    -- Hitbox Logic
+    if not _G.Disabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= lp and player.Name ~= _G.WhitelistName and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
                     hrp.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
                     hrp.Transparency = 0.7
                     hrp.BrickColor = BrickColor.new("Really blue")
                     hrp.Material = Enum.Material.Neon
                     hrp.CanCollide = false
-                else
-                    -- เมื่อปิดใช้งาน (OFF) คืนค่าเดิมของ Roblox
-                    hrp.Size = Vector3.new(2, 2, 1)
-                    hrp.Transparency = 1
-                    hrp.BrickColor = BrickColor.new("Medium stone grey")
-                    hrp.Material = Enum.Material.Plastic
-                    hrp.CanCollide = true
                 end
             end
         end
@@ -286,17 +279,18 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    -- Fling Logic
+    -- Fling Logic (หมุนตัวแรงๆ)
     if FlingEnabled then
         local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
+            -- ใส่ความเร็วหมุนมหาศาลเพื่อให้ตัวสะบัดคนอื่นกระเด็น
             hrp.RotVelocity = Vector3.new(0, 99999, 0)
-            hrp.Velocity = hrp.Velocity + Vector3.new(0, 1, 0)
+            hrp.Velocity = hrp.Velocity + Vector3.new(0, 1, 0) -- ยกตัวนิดหน่อยกันติดพื้น
         end
     end
 end)
 
---// ESP Logic
+--// ESP Logic (แบบ Simple)
 local function CreateESP(player)
     local Billboard = Instance.new("BillboardGui")
     local TextLabel = Instance.new("TextLabel")
@@ -334,7 +328,7 @@ local function CreateESP(player)
     end)
 end
 
--- สร้าง ESP
+-- สร้าง ESP ให้คนที่อยู่ในเซิร์ฟ
 for _, p in pairs(Players:GetPlayers()) do
     if p ~= lp then
         p.CharacterAdded:Connect(function() CreateESP(p) end)
@@ -344,35 +338,6 @@ end
 Players.PlayerAdded:Connect(function(p)
     p.CharacterAdded:Connect(function() CreateESP(p) end)
 end)
-
--------------------------------------------------------------------------------
--- [ TAB: EVENT ]
--------------------------------------------------------------------------------
--- ตรวจสอบให้แน่ใจว่าในสคริปต์หลักมีตัวแปรชื่อ Window อยู่แล้ว
-local EventTab = Window:AddTab({ Title = "Event", Icon = "calendar" })
-
--- ประกาศตัวแปร LocalPlayer ไว้ใช้ข้างในปุ่ม (ถ้ายังไม่มีในสคริปต์หลัก)
-local lp = game:GetService("Players").LocalPlayer
-
-EventTab:AddSection("Event Teleport (วาร์ปกิจกรรม)")
-
---// 1. วาร์ปไปยึดจุดจับกุม
-EventTab:AddButton({
-    Title = "Teleport to Capture Point (วาร์ปไปจุดยึด)",
-    Description = "TP to Capture Point (X:-502, Y:177, Z:-1031)",
-    Callback = function()
-        local char = lp.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = CFrame.new(-502.4, 177.0, -1031.0)
-            Fluent:Notify({
-                Title = "Event System",
-                Content = "Arrived at Capture Point!",
-                Duration = 2
-            })
-        end
-    end
-})
 
 -------------------------------------------------------------------------------
 -- [ TAB: EXECUTOR ]
