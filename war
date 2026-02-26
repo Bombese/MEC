@@ -337,7 +337,7 @@ end
 Players.PlayerAdded:Connect(function(p)
     p.CharacterAdded:Connect(function() CreateESP(p) end)
 end)
--ttt
+
 -------------------------------------------------------------------------------
 -- [ TAB: FUNCTION ]
 -------------------------------------------------------------------------------
