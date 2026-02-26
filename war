@@ -1,0 +1,189 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+--// Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local lp = Players.LocalPlayer
+
+--// Window Setup
+local Window = Fluent:CreateWindow({
+    Title = "Felon HUB : New Project",
+    SubTitle = "Main Features",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(450, 350),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-------------------------------------------------------------------------------
+-- [ Floating Button : Felon ]
+-------------------------------------------------------------------------------
+local ScreenGui = Instance.new("ScreenGui", (gethui and gethui()) or game:GetService("CoreGui"))
+local OpenBtn = Instance.new("TextButton", ScreenGui)
+local UICorner = Instance.new("UICorner", OpenBtn)
+local UIStroke = Instance.new("UIStroke", OpenBtn)
+
+OpenBtn.Size = UDim2.new(0, 80, 0, 40)
+OpenBtn.Position = UDim2.new(0, 10, 0, 200)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+OpenBtn.Text = "Felon"
+OpenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenBtn.Font = Enum.Font.GothamBold
+OpenBtn.Draggable = true
+UICorner.CornerRadius = UDim.new(0, 10)
+UIStroke.Color = Color3.fromRGB(0, 170, 255)
+UIStroke.Thickness = 2
+OpenBtn.MouseButton1Click:Connect(function() Window:Minimize() end)
+
+-------------------------------------------------------------------------------
+-- [ TAB: MAIN ]
+-------------------------------------------------------------------------------
+local MainTab = Window:AddTab({ Title = "Main", Icon = "home" })
+
+--// Variables for Stats
+local WalkSpeedValue = 20
+local JumpPowerValue = 50
+local WalkSpeedEnabled = false
+local JumpPowerEnabled = false
+
+MainTab:AddSection("Movement Settings (ตั้งค่าการเคลื่อนที่)")
+
+--// 1. WalkSpeed (วิ่งไว)
+MainTab:AddSlider("WS_Slider", {
+    Title = "WalkSpeed (ความเร็วในการวิ่ง)",
+    Description = "Min: 20 | Max: 300",
+    Default = 20,
+    Min = 20,
+    Max = 300,
+    Rounding = 0,
+    Callback = function(Value)
+        WalkSpeedValue = Value
+    end
+})
+
+MainTab:AddToggle("WS_Toggle", {
+    Title = "Enable WalkSpeed (เปิดวิ่งไว)", 
+    Default = false,
+    Callback = function(Value)
+        WalkSpeedEnabled = Value
+    end
+})
+
+--// 2. JumpPower (กระโดดสูง)
+MainTab:AddSlider("JP_Slider", {
+    Title = "JumpPower (ความสูงในการกระโดด)",
+    Description = "Min: 50 | Max: 500 (Value: 50 is Default)",
+    Default = 50,
+    Min = 50,
+    Max = 500, -- ปรับเป็น 500 เพื่อให้เห็นความต่างชัดเจนตามปกติของ JumpPower
+    Rounding = 0,
+    Callback = function(Value)
+        JumpPowerValue = Value
+    end
+})
+
+MainTab:AddToggle("JP_Toggle", {
+    Title = "Enable JumpPower (เปิดกระโดดสูง)", 
+    Default = false,
+    Callback = function(Value)
+        JumpPowerEnabled = Value
+    end
+})
+
+--// Loop for updating Stats
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local char = lp.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        if hum then
+            -- Update WalkSpeed
+            if WalkSpeedEnabled then
+                hum.WalkSpeed = WalkSpeedValue
+            end
+            -- Update JumpPower
+            if JumpPowerEnabled then
+                hum.UseJumpPower = true
+                hum.JumpPower = JumpPowerValue
+            end
+        end
+    end)
+end)
+
+Window:SelectTab(1)
+
+-------------------------------------------------------------------------------
+-- [ TAB: GUN ]
+-------------------------------------------------------------------------------
+local GunTab = Window:AddTab({ Title = "Gun", Icon = "target" })
+
+GunTab:AddSection("Auto Find Weapons (ค้นหาอาวุธในแมพ)")
+
+-- ฟังก์ชันค้นหาและวาร์ป (หาตามชื่อ Object)
+local function FindAndTP(GunName)
+    local char = lp.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local found = false
+
+    -- ค้นหาทุกอย่างใน Workspace
+    for _, v in pairs(workspace:GetDescendants()) do
+        -- เช็คว่าชื่อตรง และเป็นสิ่งที่เก็บได้ (MeshPart, Part หรือ Model)
+        if v.Name == GunName or v:IsA("Tool") and v.Name:find(GunName) then
+            local targetPos = nil
+            
+            if v:IsA("Model") then
+                targetPos = v:GetModelCFrame()
+            elseif v:IsA("BasePart") then
+                targetPos = v.CFrame
+            elseif v:IsA("Tool") and v:FindFirstChild("Handle") then
+                targetPos = v.Handle.CFrame
+            end
+
+            if targetPos and hrp then
+                hrp.CFrame = targetPos
+                found = true
+                Fluent:Notify({
+                    Title = "Gun System",
+                    Content = "Found " .. GunName .. "! (เจอของแล้ว วาร์ปสำเร็จ)",
+                    Duration = 3
+                })
+                break -- เจอแล้วหยุดหา
+            end
+        end
+    end
+
+    if not found then
+        Fluent:Notify({
+            Title = "Error",
+            Content = "Could not find " .. GunName .. " in this map. (ไม่พบไอเทมในแมพ)",
+            Duration = 3
+        })
+    end
+end
+
+-- 1. ปุ่มหา M4A1
+GunTab:AddButton({
+    Title = "Find M4A1",
+    Description = "สแกนหา M4A1 ทั่วแมพและวาร์ปไปหา",
+    Callback = function()
+        FindAndTP("M4A1")
+    end
+})
+
+-- 2. ปุ่มหา AK12
+GunTab:AddButton({
+    Title = "Find AK12",
+    Description = "สแกนหา AK12 ทั่วแมพและวาร์ปไปหา",
+    Callback = function()
+        FindAndTP("AK12")
+    end
+})
+
+-- 3. ปุ่มหา RPG
+GunTab:AddButton({
+    Title = "Find RPG",
+    Description = "สแกนหา RPG ทั่วแมพและวาร์ปไปหา",
+    Callback = function()
+        FindAndTP("RPG")
+    end
+})
