@@ -189,17 +189,14 @@ GunTab:AddButton({
 }) 
 
 -------------------------------------------------------------------------------
--- [ TAB: FUNCTION ] - แก้ไขให้ปลอดภัยขึ้น
+-- [ TAB: FUNCTION ] - ฉบับแก้ไขการปิด Hitbox
 -------------------------------------------------------------------------------
 local FuncTab = Window:AddTab({ Title = "Function", Icon = "box" })
 
 --// ESP Settings
 FuncTab:AddSection("ESP System (ระบบมองทะลุ)")
 
-local ESPEnabled = false
-local ESPName = false
-local ESPHealth = false
-local ESPDistance = false
+local ESPEnabled, ESPName, ESPHealth, ESPDistance = false, false, false, false
 
 FuncTab:AddToggle("ESP_Toggle", { Title = "Enable ESP", Default = false, Callback = function(v) ESPEnabled = v end })
 FuncTab:AddToggle("ESP_Name", { Title = "Show Name", Default = false, Callback = function(v) ESPName = v end })
@@ -207,7 +204,7 @@ FuncTab:AddToggle("ESP_Health", { Title = "Show Health", Default = false, Callba
 FuncTab:AddToggle("ESP_Dist", { Title = "Show Distance", Default = false, Callback = function(v) ESPDistance = v end })
 
 --// Hitbox Settings
-FuncTab:AddSection("Hitbox System")
+FuncTab:AddSection("Hitbox System (ขยายฮิตบ็อกซ์)")
 
 _G.HeadSize = 10 
 _G.Disabled = true 
@@ -222,52 +219,41 @@ FuncTab:AddSlider("HitboxSize", {
 FuncTab:AddToggle("Hitbox_Toggle", {
     Title = "Enable Hitbox",
     Default = false,
-    Callback = function(v) _G.Disabled = not v end
+    Callback = function(v) 
+        _G.Disabled = not v 
+    end
 })
 
 --// Misc Features
 FuncTab:AddSection("Misc Features")
-
-local NoclipEnabled = false
-FuncTab:AddToggle("Noclip_Toggle", {
-    Title = "Noclip (เดินทะลุ)",
-    Default = false,
-    Callback = function(v) NoclipEnabled = v end
-})
-
-local FlingEnabled = false
-FuncTab:AddToggle("Fling_Toggle", {
-    Title = "Fling Mode (ตัวหมุน)",
-    Default = false,
-    Callback = function(v) 
-        FlingEnabled = v 
-        if not v then
-            pcall(function() 
-                if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-                    lp.Character.HumanoidRootPart.RotVelocity = Vector3.new(0,0,0) 
-                end
-            end)
-        end
-    end
-})
+local NoclipEnabled, FlingEnabled = false, false
+FuncTab:AddToggle("Noclip_Toggle", { Title = "Noclip", Default = false, Callback = function(v) NoclipEnabled = v end })
+FuncTab:AddToggle("Fling_Toggle", { Title = "Fling Mode", Default = false, Callback = function(v) FlingEnabled = v end })
 
 -------------------------------------------------------------------------------
--- [ LOGIC SYSTEMS ] - ใส่ pcall กันพัง
+-- [ LOGIC SYSTEMS ] - ส่วนนี้สำคัญ (ต้องมีเพื่อให้ Hitbox ปิดแล้วหาย)
 -------------------------------------------------------------------------------
-
 RunService.RenderStepped:Connect(function()
     pcall(function()
-        -- Hitbox Logic
-        if not _G.Disabled then
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= lp and player.Name ~= _G.WhitelistName and player.Character then
-                    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp then
+        -- Hitbox & Reset Logic
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= lp and player.Character then
+                local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    if not _G.Disabled and player.Name ~= _G.WhitelistName then
+                        -- ตอนเปิด: ขยายขนาด
                         hrp.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
                         hrp.Transparency = 0.7
                         hrp.BrickColor = BrickColor.new("Really blue")
                         hrp.Material = Enum.Material.Neon
                         hrp.CanCollide = false
+                    else
+                        -- ตอนปิด: คืนค่าเดิมทันที
+                        hrp.Size = Vector3.new(2, 2, 1)
+                        hrp.Transparency = 1
+                        hrp.BrickColor = BrickColor.new("Medium stone grey")
+                        hrp.Material = Enum.Material.Plastic
+                        hrp.CanCollide = true
                     end
                 end
             end
@@ -281,15 +267,85 @@ RunService.RenderStepped:Connect(function()
         end
 
         -- Fling Logic
-        if FlingEnabled and lp.Character then
-            local hrp = lp.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                hrp.RotVelocity = Vector3.new(0, 99999, 0)
-                hrp.Velocity = hrp.Velocity + Vector3.new(0, 1, 0)
-            end
+        if FlingEnabled and lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+            lp.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 99999, 0)
+            lp.Character.HumanoidRootPart.Velocity = lp.Character.HumanoidRootPart.Velocity + Vector3.new(0, 1, 0)
         end
     end)
 end)
+
+-------------------------------------------------------------------------------
+-- [ TAB: EVENT ]
+-------------------------------------------------------------------------------
+local EventTab = Window:AddTab({ Title = "Event", Icon = "calendar" })
+
+EventTab:AddSection("Event Teleport (วาร์ปกิจกรรม)")
+
+--// 1. วาร์ปไปยึดจุดจับกุม (ตามพิกัดที่ระบุ)
+EventTab:AddButton({
+    Title = "Teleport to Capture Point (วาร์ปไปจุดยึด)",
+    Description = "TP to Capture Point (X:-502, Y:177, Z:-1031)",
+    Callback = function()
+        local char = lp.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = CFrame.new(-502.4, 177.0, -1031.0)
+            Fluent:Notify({
+                Title = "Event System",
+                Content = "Arrived at Capture Point! (ถึงจุดยึดแล้ว)",
+                Duration = 2
+            })
+        end
+    end
+})
+
+--// 2. วาร์ปไปหา Oil (ระบบ Scan หาอัตโนมัติ)
+EventTab:AddButton({
+    Title = "Teleport to Oil (วาร์ปไปหา Oil)",
+    Description = "Scan and TP to Oil location in Map",
+    Callback = function()
+        local char = lp.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local found = false
+
+        -- ค้นหา Oil ใน Workspace (ตรวจสอบชื่อที่น่าจะเป็นไปได้)
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v.Name == "Oil" or v.Name:find("Oil") then
+                local targetPos = nil
+                if v:IsA("Model") then
+                    targetPos = v:GetModelCFrame()
+                elseif v:IsA("BasePart") then
+                    targetPos = v.CFrame
+                end
+
+                if targetPos and hrp then
+                    hrp.CFrame = targetPos
+                    found = true
+                    Fluent:Notify({
+                        Title = "Event System",
+                        Content = "Oil Found! (เจอ Oil แล้ว)",
+                        Duration = 2
+                    })
+                    break
+                end
+            end
+        end
+
+        if not found then
+            Fluent:Notify({
+                Title = "Error",
+                Content = "Oil not found in this map! (ไม่พบ Oil ในแมพนี้)",
+                Duration = 2
+            })
+        end
+    end
+})
+
+EventTab:AddSection("Information")
+EventTab:AddParagraph({
+    Title = "How to use",
+    Content = "ปุ่ม Oil จะทำการสแกนหา Object ที่ชื่อว่า Oil ในแมพแล้ววาร์ปไปหาทันที ส่วนจุดยึดจะวาร์ปไปตามพิกัดคงที่"
+})
 
 -------------------------------------------------------------------------------
 -- [ TAB: EXECUTOR ] - ปรับปรุงใหม่
