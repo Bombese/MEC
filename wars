@@ -7,7 +7,7 @@ local lp = Players.LocalPlayer
 
 --// Window Setup
 local Window = Fluent:CreateWindow({
-    Title = "Felon HUB : War Tycoon (test)",
+    Title = "Felon HUB : War Tycoon (test10)",
     SubTitle = "Main Features",
     TabWidth = 160,
     Size = UDim2.fromOffset(450, 350),
@@ -368,34 +368,6 @@ EventTab:AddButton({
             Fluent:Notify({
                 Title = "Event System",
                 Content = "Arrived at Capture Point!",
-                Duration = 2
-            })
-        end
-    end
-})
-
--------------------------------------------------------------------------------
--- [ TAB: QUEST ]
--------------------------------------------------------------------------------
-local QuestTab = Window:AddTab({ Title = "Quest", Icon = "target" })
-
-QuestTab:AddSection("Capture Point (จุดยึดจับกุม)")
-
-QuestTab:AddButton({
-    Title = "Teleport to Capture Point",
-    Description = "วาร์ปไปจุดยึด (X:-502, Y:177, Z:-1031)",
-    Callback = function()
-        local char = lp.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        
-        if hrp then
-            -- วาร์ปไปพิกัดที่คุณระบุไว้
-            hrp.CFrame = CFrame.new(-502.4, 177.0, -1031.0)
-            
-            -- แจ้งเตือนเมื่อวาร์ปสำเร็จ
-            Fluent:Notify({
-                Title = "Quest System",
-                Content = "Arrived at Capture Point! (ถึงจุดยึดแล้ว)",
                 Duration = 2
             })
         end
