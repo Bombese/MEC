@@ -7,7 +7,7 @@ local lp = Players.LocalPlayer
 
 --// Window Setup
 local Window = Fluent:CreateWindow({
-    Title = "Felon HUB : War Tycoon (test10)",
+    Title = "Felon HUB : War Tycoon (test)",
     SubTitle = "Main Features",
     TabWidth = 160,
     Size = UDim2.fromOffset(450, 350),
@@ -340,18 +340,26 @@ Players.PlayerAdded:Connect(function(p)
 end)
 
 -------------------------------------------------------------------------------
--- [ TAB: EXECUTOR ]
+-- [ TAB: EXECUTOR ] - ปรับปรุงใหม่
 -------------------------------------------------------------------------------
 local ExecTab = Window:AddTab({ Title = "Executor", Icon = "terminal" })
 
 ExecTab:AddSection("Executor Information (ข้อมูลตัวรัน)")
 
--- ดึงชื่อตัวรัน (identifyexecutor เป็นฟังก์ชันมาตรฐานของตัวรันส่วนใหญ่)
-local execName, execVersion = identifyexecutor()
+-- ป้องกัน Error กรณี identifyexecutor คืนค่าไม่ครบ
+local success, name, version = pcall(function()
+    local n, v = identifyexecutor()
+    return n or "Unknown", v or "N/A"
+end)
+
+-- ถ้าเรียกฟังก์ชันไม่ได้เลย ให้ใส่ค่า Default
+if not success then
+    name, version = "Unknown", "N/A"
+end
 
 ExecTab:AddParagraph({
     Title = "Current Executor",
-    Content = "Name: " .. (execName or "Unknown") .. "\nVersion: " .. (execVersion or "N/A")
+    Content = "Name: " .. tostring(name) .. "\nVersion: " .. tostring(version)
 })
 
 ExecTab:AddSection("Check Capabilities")
@@ -375,7 +383,7 @@ ExecTab:AddButton({
         local support = ""
         support = support .. "FireTouch: " .. (firetouchinterest and "✅" or "❌") .. "\n"
         support = support .. "GetHui: " .. (gethui and "✅" or "❌") .. "\n"
-        support = support .. "ProtectGui: " .. (syn and syn.protect_gui and "✅" or "❌")
+        support = support .. "ProtectGui: " .. ((syn and syn.protect_gui) and "✅" or "❌")
         
         Fluent:Notify({
             Title = "Compatibility Check",
@@ -383,4 +391,17 @@ ExecTab:AddButton({
             Duration = 5
         })
     end
+})
+
+-------------------------------------------------------------------------------
+-- [ จบการตั้งค่า ]
+-------------------------------------------------------------------------------
+
+-- บรรทัดนี้ต้องอยู่ล่างสุดของ Script ทั้งหมดเสมอ!
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Felon HUB",
+    Content = "Script Loaded Successfully!",
+    Duration = 5
 })
