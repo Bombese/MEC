@@ -15,7 +15,46 @@ local Window = WindUI:CreateWindow({
     }
 })
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
+local player = Players.LocalPlayer
+
+getgenv().WalkSpeedValue = 16
+
+local function GetChar()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char, char:WaitForChild("Humanoid"), char:WaitForChild("HumanoidRootPart")
+end
+
+RunService.RenderStepped:Connect(function()
+    local _, hum = GetChar()
+    if hum and hum.WalkSpeed ~= getgenv().WalkSpeedValue then
+        hum.WalkSpeed = getgenv().WalkSpeedValue
+    end
+end)
+
+-------------------------------------------------
+-- TAB (FIXED for WindUI)
+-------------------------------------------------
+local HackTab = Window:CreateTab({
+    Title = "Hack",
+    Icon = "zap",
+})
+
+HackTab:CreateSlider({
+    Title = "Walk Speed",
+    Description = "ปรับความเร็วการเดิน",
+    Step = 1,
+    Value = {
+        Min = 16,
+        Max = 200,
+        Default = getgenv().WalkSpeedValue
+    },
+    Callback = function(v)
+        getgenv().WalkSpeedValue = v
+    end
+})
 
 HackTab:Toggle({
     Title = "Infinite Jump",
