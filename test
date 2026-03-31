@@ -37,14 +37,14 @@ end)
 -------------------------------------------------
 -- TAB (FIXED for WindUI)
 -------------------------------------------------
-local HackTab = Window:CreateTab({
+local HackTab = Window:Tab({
     Title = "Hack",
     Icon = "zap",
 })
 
-HackTab:CreateSlider({
+HackTab:Slider({
     Title = "Walk Speed",
-    Description = "ปรับความเร็วการเดิน",
+    Desc = "ปรับความเร็วการเดิน",
     Step = 1,
     Value = {
         Min = 16,
@@ -55,6 +55,7 @@ HackTab:CreateSlider({
         getgenv().WalkSpeedValue = v
     end
 })
+
 
 HackTab:Toggle({
     Title = "Infinite Jump",
