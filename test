@@ -1,0 +1,210 @@
+-- Load UI
+local WindUI = loadstring(game:HttpGet(
+    "https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"
+))()
+
+local Window = WindUI:CreateWindow({
+    Title = "rak hub v1",
+    Icon = "user",
+    Author = "ty for use",
+    OpenButton = {
+        Title = "💩RAK HUB💩",
+        Icon = "monitor",
+        Enabled = true,
+        Draggable = true,
+    }
+})
+
+-------------------------------------------------
+-- SERVICES
+-------------------------------------------------
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+
+-------------------------------------------------
+-- VARIABLES
+-------------------------------------------------
+local speed = 16
+local jump = 50
+local infJump = false
+local espOn = false
+
+-------------------------------------------------
+-- APPLY
+-------------------------------------------------
+local function apply()
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = speed
+            hum.JumpPower = jump
+        end
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.3)
+    apply()
+end)
+
+-------------------------------------------------
+-- HACK TAB
+-------------------------------------------------
+local HackTab = Window:Tab({
+    Title = "Hack",
+    Icon = "zap",
+})
+
+HackTab:Button({
+    Title = "Speed +",
+    Callback = function()
+        speed = math.clamp(speed + 5, 16, 100)
+        apply()
+    end
+})
+
+HackTab:Button({
+    Title = "Speed -",
+    Callback = function()
+        speed = math.clamp(speed - 5, 16, 100)
+        apply()
+    end
+})
+
+HackTab:Button({
+    Title = "Jump +",
+    Callback = function()
+        jump = math.clamp(jump + 50, 50, 1000)
+        apply()
+    end
+})
+
+HackTab:Button({
+    Title = "Jump -",
+    Callback = function()
+        jump = math.clamp(jump - 50, 50, 1000)
+        apply()
+    end
+})
+
+HackTab:Toggle({
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(v)
+        infJump = v
+    end
+})
+
+-------------------------------------------------
+-- INF JUMP
+-------------------------------------------------
+UIS.JumpRequest:Connect(function()
+    if infJump then
+        local char = LocalPlayer.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end
+end)
+
+-------------------------------------------------
+-- ESP TAB
+-------------------------------------------------
+local ESPTab = Window:Tab({
+    Title = "ESP",
+    Icon = "eye",
+})
+
+local espFolder = Instance.new("Folder", workspace)
+
+local function clearESP()
+    for _,v in pairs(espFolder:GetChildren()) do
+        v:Destroy()
+    end
+end
+
+local function addESP(plr)
+    if plr == LocalPlayer then return end
+    if not plr.Character then return end
+
+    local head = plr.Character:FindFirstChild("Head")
+    if not head then return end
+
+    local bill = Instance.new("BillboardGui", espFolder)
+    bill.Adornee = head
+    bill.Size = UDim2.new(0,100,0,40)
+    bill.AlwaysOnTop = true
+
+    local text = Instance.new("TextLabel", bill)
+    text.Size = UDim2.new(1,0,1,0)
+    text.Text = plr.Name
+    text.TextColor3 = Color3.new(1,0,0)
+    text.BackgroundTransparency = 1
+    text.TextScaled = true
+end
+
+local function enableESP()
+    clearESP()
+    for _,v in pairs(Players:GetPlayers()) do
+        addESP(v)
+        v.CharacterAdded:Connect(function()
+            if espOn then
+                addESP(v)
+            end
+        end)
+    end
+end
+
+ESPTab:Toggle({
+    Title = "ESP Player",
+    Default = false,
+    Callback = function(v)
+        espOn = v
+        if v then
+            enableESP()
+        else
+            clearESP()
+        end
+    end
+})
+
+-------------------------------------------------
+-- SETTINGS TAB
+-------------------------------------------------
+local SettingsTab = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+})
+
+SettingsTab:Button({
+    Title = "Increase Brightness",
+    Callback = function()
+        Lighting.Brightness = 3
+    end
+})
+
+SettingsTab:Button({
+    Title = "Reset Brightness",
+    Callback = function()
+        Lighting.Brightness = 1
+    end
+})
+
+-------------------------------------------------
+-- CREDIT TAB
+-------------------------------------------------
+local CreditTab = Window:Tab({
+    Title = "Credits",
+    Icon = "info",
+})
+
+CreditTab:Paragraph({
+    Title = "RAK HUB",
+    Desc = "Idea: idk1357759\nCreate: rak256501game"
+})
