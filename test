@@ -21,6 +21,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 getgenv().WalkSpeedValue = 16
+getgenv().InfJump = false
 
 local function GetChar()
     local char = player.Character or player.CharacterAdded:Wait()
